@@ -1,8 +1,9 @@
-Data processing and data cleaning are indispensable steps in the process of data analysis, which can enhance data quality and provide reliable basis for subsequent analysis and decision-making.
-Data processing: It refers to a series of operations such as collection, organization, transformation and analysis of raw data, aiming to extract valuable information.
-Data cleaning: The main task is to identify and handle issues such as errors, missing values, duplicate values, and outliers in the data, ensuring the accuracy, completeness and consistency of the data.
-Introduction:
-1. Loading necessary libraries
+### Data processing: It is a crucial step in data analysis that involves cleaning, transforming, and organizing raw data into structured format suitable for analysis.
+### Data cleaning: The main task is to recognise, identify and handle issues such as errors, missing values, duplicate values, and outliers in the data, ensuring the accuracy, completeness and consistency of the data.
+
+# Introduction:
+## 1. Loading necessary libraries
+````
 libraries <- c("dplyr", "skimr", "visdat", "naniar", "mice", "ggplot2", "dbscan", "FactoMineR", "factoextra")
 for (lib in libraries) {
   if (!require(lib, character.only = TRUE)) {
@@ -10,21 +11,30 @@ for (lib in libraries) {
     library(lib, character.only = TRUE)
   }
 }
-This part of the code creates a vector containing the names of multiple R packages, and then checks whether each package is installed and loaded through a loop. If it is not installed, it will be automatically installed and loaded; if it is installed, it will be directly loaded. These packages are used for subsequent data operations, visualizations, missing value processing, and other tasks.
-2. Data reading and basic information viewing
+````
+### The following code defines a set of required R packages and ensures they are installed and loaded. If any package is missing, it is installed and loaded automatically. This setup enables efficient data manipulation, visualization, and analysis.
+
+## 2. Data reading and basic information viewing
+```
 data_path <- "DataSet_No_Details.csv"
 df <- read.csv(data_path)
 str(df)
 skim(df) 
-Specify the dataset file path and read the CSV file into the data frame df. str(df) is used to view the structure of the data frame, understand the data types and general content of each column; skim(df) provides a detailed summary of the data, such as the distribution of numerical variables.
-3. Dataset preparation
+```
+### Specify the dataset file path and read the CSV file into the data frame df. str(df) is used to view the structure of the data frame, understand the data types and general content of each column; skim(df) provides a detailed summary of the data, such as the distribution of numerical variables.
+
+## 3. Dataset preparation
+```
 cols_to_remove <- c("h_index_34", "h_index_56", "hormone10_1", "hormone10_2", "an_index_23", "outcome", "factor_eth", "factor_h", "factor_pcos", "factor_prl")
 MD_df <- df %>% select(-any_of(cols_to_remove))
 factor_df <- df %>% select(record_id, outcome, factor_eth, factor_h, factor_pcos, factor_prl)
 str(MD_df)
 summary(factor_df)
-Define a vector of column names to be removed from the original data frame df, and use the select function of the dplyr package to remove these columns to obtain MD-df. At the same time, extract some columns to create factor-df. Then view the structure of MD_df and the summary information of factor-df again.
-4. Missing value identification and analysis
+```
+### Specify a vector of column names to exclude from the original data frame df, and utilize the dplyr package's select function to create MD_df by removing these columns. Additionally, extract specific columns to form factor_df. Finally, examine the structure of MD_df and generate summary statistics for factor_df.
+
+## 4. Missing value identification and analysis
+```
 total_na <- sum(is.na(MD_df))               
 col_na_counts <- colSums(is.na(MD_df))           
 skim(MD_df)
@@ -43,8 +53,11 @@ na_stats_filtered_1_table <- data.frame(
 )
 vis_miss(MD_df)
 gg_miss_var(MD_df)
-Calculate the total number of missing values in MD-df, the number of missing values in each column, and the percentage of missing values in each column. Filter the columns with a missing value percentage not exceeding 35% and those exceeding 35% according to the percentage of missing values, and organize them into data frames respectively. Use the vis-miss and gg-miss-var functions to visualize the patterns of missing data.
-5. Missing data processing and MCAR test
+```
+### Compute the total count of missing values in MD_df, as well as the count and percentage of missing values for each column. Then, categorize columns based on their missing value percentages: one group with percentages not exceeding 35% and another with percentages above 35%. Organize these columns into separate data frames. Finally, utilize the vis_miss and gg_miss_var functions to visualize the patterns of missing data.
+
+## 5. Missing data processing and MCAR test
+```
 cols_to_remove1 <- c("hormone9", "hormone11", "hormone12", "hormone13", "hormone14")
 handle_MD_df <- MD_df %>% select(-any_of(cols_to_remove1))
 handle_MD_df_clean <- handle_MD_df %>%
@@ -62,14 +75,19 @@ interpret_mcar <- function(mcar_result) {
   }
 }
 interpret_mcar(mcar_result)
-Remove more columns with a large number of missing values to obtain handle-MD-df, and further process it to get handle-MD-df-clean, removing columns that are all missing values and converting character variables into factor variables. Perform the Little's MCAR test, judge whether the data is Missing Completely At Random (MCAR) according to the test results, and give corresponding processing suggestions.
-6. Multiple imputation
+```
+### Further refine MD_df by removing columns with excessive missing values to create handle_MD_df. Then, process handle_MD_df to obtain handle_MD_df_clean by eliminating columns with all missing values and converting character variables to factor variables. Perform Little's MCAR test to determine if the data is Missing Completely At Random (MCAR). Based on the test results, assess whether the data meets the MCAR assumption and provide recommendations for subsequent data processing.
+
+## 6. Multiple imputation
+```
 imputed_pmm <- mice(handle_MD_df[,!names(handle_MD_df) %in% "New"], method = "pmm")
 imputed_pmm_final <- complete(imputed_pmm)
 imputed_rf <- mice(handle_MD_df[,!names(handle_MD_df) %in% "New"], method = "rf")
 imputed_rf_final <- complete(imputed_rf)
-Use the mice package to perform multiple imputations on the processed data using the Predictive Mean Matching (PMM) and Random Forest (RF) methods respectively, and obtain the complete imputed datasets.
-7. Comparison of imputation effects
+```
+### Utilize the mice package to perform multiple imputations on the processed data using two methods: Predictive Mean Matching (PMM) and Random Forest (RF). Generate complete datasets with imputed values using both approaches.
+## 7. Comparison of imputation effects
+```
 compare_density <- function(var, original_data, pmm_data, rf_data) {
   # Function content omitted
 }
@@ -83,8 +101,11 @@ for (v in vars_to_plot) {
   ggsave(filename = paste0("Users/haoshilong/Desktop/Graphs/imputation_density_", v, ".png"), 
          plot = plot, width = 6, height = 4)
 }
-Define a function compare-density to compare the density distributions of the original data and the data obtained by two imputation methods. Extract the names of numerical variables with missing values, draw density comparison plots for each variable, and save them to the specified path.
-8. Outlier detection
+```
+### Create a function compare_density to visualize and compare the density distributions of the original data with those obtained from two imputation methods. Identify numerical variables with missing values, generate density plots for each variable, and save the plots to a specified directory.
+
+## 8. Outlier detection
+```# Outlier detection
 # Select specific columns and reshape the data for outlier detection
 outliers_data <- imputed_rf_final %>%
   select(lipids1, lipids2, lipids3, lipids4, lipids5) %>%
@@ -137,4 +158,5 @@ ggsave(filename = "Users/haoshilong/Desktop/Graphs/lof_histogram.png",
        plot = lof_hist, width = 6, height = 4)
 # Scatter plot (show the distribution of LOF scores using lipids1 and lipids2 as an example)
 lof_scatter <- ggplot(lof
-Analyze the interpolated data by using box plots and the Local Outlier Factor (LOF) algorithm to detect outliers. Draw different types of box plots, calculate LOF scores, visualize the LOF scores through histograms and scatter plots, determine outliers based on the LOF scores and highlight them, and finally save all relevant graphics to the designated path.
+```
+### Analyze the imputed data for outliers using box plots and the Local Outlier Factor (LOF) algorithm. Generate various box plots to visualize data distributions, calculate LOF scores to identify potential outliers, and create histograms and scatter plots to visualize these scores. Determine outliers based on LOF scores, highlight them in the plots, and save all relevant graphics to the specified directory.
