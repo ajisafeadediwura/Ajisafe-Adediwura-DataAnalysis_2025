@@ -11,7 +11,7 @@ for (lib in libraries) {
 getwd()
 
 #Construct a path relative to the project root
-data_path <- "/Users/haoshilong/Downloads/DataSet_No_Details.csv"
+data_path <- "/Users/ajisafeadediwura/Downloads/DataSet_No_Details.csv"
 
 # Read the dataset
 df <- read.csv(data_path)
